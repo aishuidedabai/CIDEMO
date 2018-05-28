@@ -9,19 +9,9 @@
 #import "ViewController.h"
 #import "YJ-Swift.h"
 #import "ViewController.h"
-#import "YJ-Swift.h"
-#import "YYText.h"
-#import "YYWebImage.h"
-#import "MJRefresh.h"
-#import "YYWebImage.h"
-#import "UMMobClick/MobClick.h"
-#import "IQKeyboardManager.h"
 #import <UserNotifications/UserNotifications.h>
-#import <GTSDK/GeTuiSdk.h>
-#import <UMSocialCore/UMSocialCore.h>
 #import "GetMiYao.h"
 #include <stdio.h>
-//#import <OneAPM/OneAPM.h>
 #import "AFNetworking.h"
 #import "EncryptAndEcode.h"
 @interface ViewController ()
