@@ -2,8 +2,6 @@
 //  PacketTunnelProvider.swift
 //  PacketTunnel
 //
-//  Created by TXB on 2018/01/22.
-//
 
 import NetworkExtension
 import NEKit
@@ -22,71 +20,138 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     var lastPath:NWPath?
     
     var started:Bool = false
-
-	override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+    
+    override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
 //        DDLog.removeAllLoggers()
 //        DDLog.add(DDASLLogger.sharedInstance, with: DDLogLevel.info)
-//        ObserverFactory.currentFactory = DebugObserverFactory()
+        ObserverFactory.currentFactory = DebugObserverFactory()
         
         guard let conf = (protocolConfiguration as! NETunnelProviderProtocol).providerConfiguration else{
             exit(EXIT_FAILURE)
         }
         
+//        let SetConnect = UserDefaults.init(suiteName: "group.com.lightningCat")?.string(forKey: "SetConnect")
+//        if SetConnect ?? "" == "0" {
+//            exit(1)
+//            return
+//        }
+        
         let ss_adder = conf["ss_address"] as! String
         let ss_port = conf["ss_port"] as! Int
-        let method = conf["ss_method"] as! String
+//        let method = conf["ss_method"] as! String
         let password = conf["ss_password"] as!String
         
-        let algorithm:CryptoAlgorithm
+//         ss_adder = "52.229.171.150"
+//         ss_port = 7702
+//        //        let method = conf["ss_method"] as! String
+//         password = "elina"
+        // SSR Httpsimple
+        //        let obfuscater = ShadowsocksAdapter.ProtocolObfuscater.HTTPProtocolObfuscater.Factory(hosts:["intl.aliyun.com","cdn.aliyun.com"], customHeader:nil)
+        
+        // Origin
+        let obfuscater = ShadowsocksAdapter.ProtocolObfuscater.OriginProtocolObfuscater.Factory()
+
+        var algorithm:CryptoAlgorithm
         algorithm = .AES256CFB
-        let ssAdapterFactory = ShadowsocksAdapterFactory(serverHost: ss_adder, serverPort: ss_port, protocolObfuscaterFactory:ShadowsocksAdapter.ProtocolObfuscater.OriginProtocolObfuscater.Factory(), cryptorFactory: ShadowsocksAdapter.CryptoStreamProcessor.Factory(password: password, algorithm: algorithm), streamObfuscaterFactory: ShadowsocksAdapter.StreamObfuscater.OriginStreamObfuscater.Factory())
+
+        let ssAdapterFactory = ShadowsocksAdapterFactory(serverHost: ss_adder, serverPort: ss_port, protocolObfuscaterFactory:obfuscater, cryptorFactory: ShadowsocksAdapter.CryptoStreamProcessor.Factory(password: password, algorithm: algorithm), streamObfuscaterFactory: ShadowsocksAdapter.StreamObfuscater.OriginStreamObfuscater.Factory())
         
         let directAdapterFactory = DirectAdapterFactory()
         
         //Get lists from conf
-       var UserRules:[NEKit.Rule] = []
+        let yaml_str = conf["Steamconf"] as!String
+        let value = try! Yaml.load(yaml_str)
         
-        // Rules
-        var rule_array : [NEKit.DomainListRule.MatchCriterion] = []
-        rule_array.append(DomainListRule.MatchCriterion.keyword("google"))
-        rule_array.append(DomainListRule.MatchCriterion.keyword("twitter"))
-        rule_array.append(DomainListRule.MatchCriterion.keyword("yahoo"))
-        rule_array.append(DomainListRule.MatchCriterion.keyword("instagram"))
-        rule_array.append(DomainListRule.MatchCriterion.keyword("facebook"))
-        rule_array.append(DomainListRule.MatchCriterion.keyword("whatsapp"))
-        rule_array.append(DomainListRule.MatchCriterion.keyword("telegarm"))
-
-        UserRules.append(DomainListRule(adapterFactory: directAdapterFactory, criteria: rule_array))
-        var rule_arraysteam : [NEKit.DomainListRule.MatchCriterion] = []
-        rule_arraysteam.append(DomainListRule.MatchCriterion.suffix("stream.com"))
-        rule_arraysteam.append(DomainListRule.MatchCriterion.suffix("steamcommunity.com"))
-        rule_arraysteam.append(DomainListRule.MatchCriterion.suffix("steampowered.com"))
-        rule_arraysteam.append(DomainListRule.MatchCriterion.suffix("steamcommunity-a.akamaihd.net"))
-        rule_arraysteam.append(DomainListRule.MatchCriterion.keyword("steamcommunity-a.akamaihd"))
-        rule_arraysteam.append(DomainListRule.MatchCriterion.keyword("steamcommunity-a"))
-        rule_arraysteam.append(DomainListRule.MatchCriterion.suffix("ytimg.com"))
+        var UserRules:[NEKit.Rule] = []
         
-       let arrip = [".deathmatchclassic.com",".modexpo.com",".poweredbysteam.net",".steamcommunity.com",".steamdevdays.com",".steamgames.com",".steamgames.net",".steampowered.com",".steampoweredgames.com",".steamserver.net",".steamstatic.com",".steamusers.com",".steamusers.net",".valve.net",".valvecorporation.com",".valvesoftware.com",".steam.net",".steamcontent.com",".steamcybercafe.com",".steammovies.org",".steampowered.co.nz",".steampowered.us",".steampoweredgames.net",".steampoweredgames.org",".steamusercontent.com",".steamvr.com",".valve.org",".valvecorp.net",".valvecorp.org",".valvecorporate.com",".valvessoftwares.com",".3games1box.com",".5games1box.com",".aheadofthegamemovie.com",".aheadofthegamethemovie.com",".aperturelaboratories.com",".aperturelabratories.com",".aperturescience.com",".as32590.net",".counterstrike.com.tw",".counter-strike.com.tw",".counter-strike.net",".counterstrike.tw",".counterstrike3.com",".counterstrike3.net",".counter-strike3.net",".counterstrike4.com",".counter-strike4.com",".counterstrike4.net",".counter-strike4.net",".counterstrike5.com",".counter-strike5.com",".counterstrike5.net",".counter-strike5.net",".counterstriketv.com",".cs-conditionzero.com",".csonline.com.tr",".csonline.com.tw",".csoturkey.com.tr",".csoturkey.info",".csoturkey.net",".dayofdefeat.com",".dayofdefeat1.com",".dayofdefeat1.net",".dayofdefeat2.com",".dayofdefeat2.net",".dayofdefeat3.com",".dayofdefeat3.net",".dayofdefeatmod.com",".dayofdefeattv.com",".dod1.net",".dod2.com",".dod2.net",".dod3.com",".dod3.net",".dota2.com",".freetoplaythemovie.com",".gamerlifemovie.com",".gamerlifethemovie.com",".getinsidetheorangebox.com",".half-life.com",".halflife.net",".half-life2.com",".halflife2movie.com",".half-life2movie.com",".halflife2portal.com",".half-life2portal.com",".halflife2portal.net",".half-life2portal.net",".halflife2sucks.com",".half-life2sucks.com",".halflife2themovie.com",".half-life3.com",".halflife3.net",".half-life3.net",".halflife3.org",".half-life3.org",".halflife3movie.com",".half-life3movie.com",".halflife3themovie.com",".halflifemac.com",".halflifeminerva.com",".half-lifeminerva.com",".half-lifemovie.com",".half-lifeportal.com",".halflifeportal.net",".half-lifeportal.net",".halflifethemovie.com",".hl2.org",".hl2portal.com",".hl2portal.net",".hl2sucks.com",".hlauth.net",".l4d.com",".l4d2.com.cn",".learningwithportals.com",".learnwithportals.com",".leftfourdead.com",".leftfourdead.net",".midnight-riders.com",".midnight-riders.net",".minervametastasis.com",".opposingforce.com",".opposing-force.com",".opposing-force.net",".opposing-force.org",".portal2-game.com",".portal2game.net",".portal2thegame.com",".portal2-thegame.com",".shopatvalve.com",".sourcefilmmaker.com",".steammoves.com",".teachwithportals.com",".teamfortress.com",".team-fortress.com",".team-fortress2.com",".teamfortressclassic.com",".teamfortressii.com",".team-fortressii.com",".teamfortresstv.com",".tf2.com",".tf-2.com",".tf-c.com",".tfclassic.org",".tfii.com",".tf-source.com",".tfsource.net",".tf-source.net",".theheartofracing.org",".thinkwithportals.com",".thinkwithportals.com",".valvestore.net",".valvesucks.com",".whatistheorangebox.com",".whatsinsidetheorangebox.com"]
-        
-        for line in arrip{//枚举数组需要 characters。characters是索引
-            let string = NSString(format: "%@" , line )
-            rule_arraysteam.append(DomainListRule.MatchCriterion.suffix(string as String))
+        for each in (value["rule"].array! ){
+            let ruleType = each["type"].string!
+            switch ruleType {
+                
+            case "domainlist":
+                var rule_array : [NEKit.DomainListRule.MatchCriterion] = []
+                for dom in each["criteria"].array!{
+                    let raw_dom = dom.string!
+                    let index = raw_dom.index(raw_dom.startIndex, offsetBy: 1)
+                    let index2 = raw_dom.index(raw_dom.startIndex, offsetBy: 2)
+                    let typeStr = raw_dom.substring(to: index)
+                    let url = raw_dom.substring(from: index2)
+                    
+                    if typeStr == "s"{
+                        rule_array.append(DomainListRule.MatchCriterion.suffix(url))
+                    }else if typeStr == "k"{
+                        rule_array.append(DomainListRule.MatchCriterion.keyword(url))
+                    }else if typeStr == "p"{
+                        rule_array.append(DomainListRule.MatchCriterion.prefix(url))
+                    }else if typeStr == "r"{
+                        // ToDo:
+                        // shoud be complete
+                    }
+                }
+                
+                //httpgithubdirect
+                var httpgithubdirect: [String] = [ ]
+                httpgithubdirect = conf["httpgithubdirect"] as! Array
+                do {for line in httpgithubdirect {
+                    let string1 = NSString(format: "%@" , line as CVarArg)
+                    rule_array.append(DomainListRule.MatchCriterion.suffix(string1 as String)) }}catch {}
+                
+                UserRules.append(DomainListRule(adapterFactory: directAdapterFactory, criteria: rule_array))
+            case "domainlistproxy":
+                var rule_array : [NEKit.DomainListRule.MatchCriterion] = []
+                for dom in each["criteria"].array!{
+                    let raw_dom = dom.string!
+                    let index = raw_dom.index(raw_dom.startIndex, offsetBy: 1)
+                    let index2 = raw_dom.index(raw_dom.startIndex, offsetBy: 2)
+                    let typeStr = raw_dom.substring(to: index)
+                    let url = raw_dom.substring(from: index2)
+                    
+                    if typeStr == "s"{
+                        rule_array.append(DomainListRule.MatchCriterion.suffix(url))
+                    }else if typeStr == "k"{
+                        rule_array.append(DomainListRule.MatchCriterion.keyword(url))
+                    }else if typeStr == "p"{
+                        rule_array.append(DomainListRule.MatchCriterion.prefix(url))
+                    }else if typeStr == "r"{
+                        // ToDo:
+                        // shoud be complete
+                    }
+                }
+                
+                //github拉取的配置
+                var httpgithub: [String] = [ ]
+                    httpgithub = conf["httpgithub"] as! Array
+                    do {for line in httpgithub {
+                        let string = NSString(format: "%@" , line as CVarArg)
+                        rule_array.append(DomainListRule.MatchCriterion.suffix(string as String)) }}catch {}
+                
+                UserRules.append(DomainListRule(adapterFactory: ssAdapterFactory, criteria: rule_array))
+                
+            case "iplist":
+                let ipArray = each["criteria"].array!.map{$0.string!}
+                UserRules.append(try! IPRangeListRule(adapterFactory: directAdapterFactory, ranges: ipArray))
+            default:
+                break
+            }
         }
         
-          UserRules.append(DomainListRule(adapterFactory: ssAdapterFactory, criteria: rule_arraysteam))
+        
         // Rules
         let chinaRule = CountryRule(countryCode: "CN", match: true, adapterFactory: directAdapterFactory)
-        let unKnowLoc = CountryRule(countryCode: "--", match: true, adapterFactory: directAdapterFactory)
+        let unKnowLoc = CountryRule(countryCode: "--", match: true, adapterFactory: ssAdapterFactory)
         let dnsFailRule = DNSFailRule(adapterFactory: ssAdapterFactory)
-     
-        let allRule = AllRule(adapterFactory: ssAdapterFactory)
+        
+        let allRule = AllRule(adapterFactory: directAdapterFactory)
         UserRules.append(contentsOf: [chinaRule,unKnowLoc,dnsFailRule,allRule])
         
         let manager = RuleManager(fromRules: UserRules, appendDirect: true)
         
         RuleManager.currentManager = manager
         proxyPort =  9090
-
+        
+        //  RawSocketFactory.TunnelProvider = self
+        
+        // the `tunnelRemoteAddress` is meaningless because we are not creating a tunnel.
         let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: "8.8.8.8")
         networkSettings.mtu = 1500
         
@@ -113,11 +178,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         proxySettings.excludeSimpleHostnames = true
         // This will match all domains
         proxySettings.matchDomains = [""]
-        proxySettings.exceptionList = [""]
+        proxySettings.exceptionList = ["api.smoot.apple.com","configuration.apple.com","xp.apple.com","smp-device-content.apple.com","guzzoni.apple.com","captive.apple.com","*.ess.apple.com","*.push.apple.com","*.push-apple.com.akadns.net"]
         networkSettings.proxySettings = proxySettings
         
         if enablePacketProcessing {
-            let DNSSettings = NEDNSSettings(servers: ["198.18.0.1"])
+            let DNSSettings = NEDNSSettings(servers: ["114.114.114.114","223.6.6.6"])
             DNSSettings.matchDomains = [""]
             DNSSettings.matchDomainsNoSearch = false
             networkSettings.dnsSettings = DNSSettings
@@ -156,7 +221,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 
                 
                 let dnsServer = DNSServer(address: IPAddress(fromString: "198.18.0.1")!, port: NEKit.Port(port: 53), fakeIPPool: fakeIPPool)
-                let resolver = UDPDNSResolver(address: IPAddress(fromString: "114.114.114.114")!, port: NEKit.Port(port: 53))
+                
+                let randomNumber:Int = Int(arc4random() % 2)
+//                let DNSArr = [,"223.5.5.5","223.6.6.6"] // DNSArr[randomNumber]
+                let resolver = UDPDNSResolver(address: IPAddress(fromString: "223.5.5.5")!, port: NEKit.Port(port: 53))
+                
                 dnsServer.registerResolver(resolver)
                 self.interface.register(stack: dnsServer)
                 
@@ -170,13 +239,13 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 self.interface.start()
             }
             self.started = true
-
+            
         }
         
     }
     
-
-	override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
+    
+    override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         if enablePacketProcessing {
             interface.stop()
             interface = nil
@@ -191,7 +260,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         completionHandler()
         
         exit(EXIT_SUCCESS)
-	}
+    }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "defaultPath" {
@@ -199,6 +268,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                 if(lastPath == nil){
                     lastPath = self.defaultPath
                 }else{
+                    NSLog("received network change notifcation")
                     let delayTime = DispatchTime.now() + Double(Int64(1 * Double(NSEC_PER_SEC))) / Double(NSEC_PER_SEC)
                     DispatchQueue.main.asyncAfter(deadline: delayTime) {
                         self.startTunnel(options: nil){_ in}
@@ -210,5 +280,6 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
         
     }
-
+    
 }
+
